@@ -3,7 +3,8 @@
 	
 	let userPreferences: any = {};
 	let lessonsCompleted = 0;
-	let totalLessons = 8;
+	let totalLessons = 3;
+	let lessonScores: any = {};
 	
 	onMount(() => {
 		// Load user preferences from localStorage
@@ -11,16 +12,35 @@
 		if (stored) {
 			userPreferences = JSON.parse(stored);
 		}
+		
+		// Load lesson scores from localStorage
+		const storedScores = localStorage.getItem('lessonScores');
+		if (storedScores) {
+			lessonScores = JSON.parse(storedScores);
+		}
+		
+		// Set lessons based on destination
+		if (userPreferences.destination === 'France') {
+			lessons = frenchLessons;
+			totalLessons = frenchLessons.length;
+		} else {
+			lessons = spanishLessons;
+			totalLessons = spanishLessons.length;
+		}
 	});
 	
-	const lessons = [
+	let lessons: any[] = [];
+	
+	// Spanish lessons
+	const spanishLessons = [
 		{
 			id: 1,
 			title: 'Basic "Yo" + Present Tense',
 			description: 'Master essential verbs with "yo" (I): quiero, necesito, tengo',
 			completed: false,
 			available: true,
-			skills: ['yo quiero (I want)', 'yo necesito (I need)', 'yo tengo (I have)']
+			skills: ['yo quiero (I want)', 'yo necesito (I need)', 'yo tengo (I have)'],
+			language: 'spanish'
 		},
 		{
 			id: 2,
@@ -28,7 +48,8 @@
 			description: 'Learn to conjugate verbs for different subjects',
 			completed: false,
 			available: true,
-			skills: ['hablar → hablo, hablas, habla', 'comer → como, comes, come', 'vivir → vivo, vives, vive']
+			skills: ['hablar → hablo, hablas, habla', 'comer → como, comes, come', 'vivir → vivo, vives, vive'],
+			language: 'spanish'
 		},
 		{
 			id: 3,
@@ -36,55 +57,30 @@
 			description: 'Talk about real people and groups (Pablo, mi familia, etc.)',
 			completed: false,
 			available: true,
-			skills: ['Pablo habla (Pablo speaks)', 'mi familia come (my family eats)', 'mis hermanos viven (my brothers live)']
+			skills: ['Pablo habla (Pablo speaks)', 'mi familia come (my family eats)', 'mis hermanos viven (my brothers live)'],
+			language: 'spanish'
+		}
+	];
+	
+	// French lessons
+	const frenchLessons = [
+		{
+			id: 1,
+			title: 'Basic "Je" + Present Tense',
+			description: 'Master essential verbs with "je" (I): veux, ai besoin, ai',
+			completed: false,
+			available: true,
+			skills: ['je veux (I want)', 'j\'ai besoin (I need)', 'j\'ai (I have)'],
+			language: 'french'
 		},
 		{
-			id: 4,
-			title: 'Essential Travel Verbs',
-			description: 'Key verbs for travel situations',
+			id: 2,
+			title: 'Verb Conjugations: -er, -ir, -re',
+			description: 'Learn to conjugate verbs for different subjects',
 			completed: false,
-			available: false,
-			skills: ['ir (to go)', 'estar (to be)', 'poder (can/to be able)']
-		},
-		{
-			id: 5,
-			title: 'Question Formation',
-			description: 'Ask questions like "¿Dónde está...?" and "¿Cuánto cuesta...?"',
-			completed: false,
-			available: false,
-			skills: ['¿Dónde está...?', '¿Cuánto cuesta...?', '¿Habla inglés?']
-		},
-		{
-			id: 6,
-			title: 'Numbers & Quantities',
-			description: 'Numbers 1-100, prices, and quantities',
-			completed: false,
-			available: false,
-			skills: ['Numbers 1-20', 'Prices and money', 'Quantities (mucho, poco)']
-		},
-		{
-			id: 7,
-			title: 'Directions & Locations',
-			description: 'Navigate and describe locations',
-			completed: false,
-			available: false,
-			skills: ['izquierda/derecha', 'cerca/lejos', 'al lado de']
-		},
-		{
-			id: 8,
-			title: 'Food & Restaurant',
-			description: 'Order food and interact at restaurants',
-			completed: false,
-			available: false,
-			skills: ['Menu vocabulary', 'Ordering phrases', 'Dietary restrictions']
-		},
-		{
-			id: 9,
-			title: 'Emergency & Help',
-			description: 'Essential phrases for getting help',
-			completed: false,
-			available: false,
-			skills: ['¡Ayuda!', '¿Habla inglés?', 'Llamar a la policía']
+			available: true,
+			skills: ['parler → parle, parles, parle', 'finir → finis, finis, finit', 'vendre → vends, vends, vend'],
+			language: 'french'
 		}
 	];
 </script>
@@ -140,6 +136,19 @@
 						
 						<p class="text-gray-600 mb-4">{lesson.description}</p>
 						
+						<!-- Show score if lesson has been completed -->
+						{#if lessonScores[`${lesson.language}-${lesson.id}`]}
+							<div class="bg-green-50 border border-green-200 rounded p-3 mb-4">
+								<div class="flex items-center justify-between">
+									<span class="text-sm font-medium text-green-800">Your Score:</span>
+									<div class="text-right">
+										<div class="text-lg font-bold text-green-600">{lessonScores[`${lesson.language}-${lesson.id}`].score}</div>
+										<div class="text-sm text-green-700">{lessonScores[`${lesson.language}-${lesson.id}`].percentage}%</div>
+									</div>
+								</div>
+							</div>
+						{/if}
+						
 						<div class="mb-4">
 							<h4 class="text-sm font-medium text-gray-700 mb-2">You'll learn:</h4>
 							<ul class="text-sm text-gray-600 space-y-1">
@@ -154,14 +163,14 @@
 						
 						{#if lesson.available && !lesson.completed}
 							<a 
-								href="/lessons/{lesson.id}"
+								href="/{lesson.language === 'french' ? 'frenchlessons' : 'spanishlessons'}/{lesson.id}"
 								class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors inline-block text-center"
 							>
 								{lesson.id === 1 ? 'Start Learning' : 'Continue Lesson'}
 							</a>
 						{:else if lesson.completed}
 							<a 
-								href="/lessons/{lesson.id}"
+								href="/{lesson.language === 'french' ? 'frenchlessons' : 'spanishlessons'}/{lesson.id}"
 								class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors inline-block text-center"
 							>
 								Review Lesson
