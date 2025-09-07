@@ -2,9 +2,20 @@
 	import { goto } from '$app/navigation';
 
 	let currentCardIndex = 0;
+	let previousCardIndex = -1; // Track previous card to avoid repeats
 	let isFlipped = false;
-	let completedCards = new Set();
-	let studyMode = 'learning'; // 'learning' or 'review'
+	
+	// Knowledge levels: 0 = unknown, 1 = kind of known, 2 = known
+	let cardKnowledge: { [key: number]: number } = {};
+	
+	// Initialize all cards as unknown (0)
+	function initializeCardKnowledge() {
+		for (let i = 0; i < lessonContent.flashcards.length; i++) {
+			if (cardKnowledge[i] === undefined) {
+				cardKnowledge[i] = 0;
+			}
+		}
+	}
 
 	// Spanish Phase 1: Essential Phrases Flashcards
 	const lessonContent = {
@@ -27,63 +38,128 @@
 		]
 	};
 
+	// Card selection algorithm with group-based selection
+	function selectNextCard(): number {
+		// Separate cards into groups by knowledge level
+		const unknownCards = [];
+		const kindOfKnownCards = [];
+		const knownCards = [];
+		
+		for (let i = 0; i < lessonContent.flashcards.length; i++) {
+			// Skip the previous card to avoid repeats (unless it's the only option)
+			if (i === previousCardIndex && lessonContent.flashcards.length > 1) {
+				continue;
+			}
+			
+			const knowledge = cardKnowledge[i] || 0;
+			if (knowledge === 0) unknownCards.push(i);
+			else if (knowledge === 1) kindOfKnownCards.push(i);
+			else knownCards.push(i);
+		}
+		
+		// Group selection weights (higher = more likely to be selected)
+		const groupWeights = [
+			{ group: unknownCards, weight: 50 },      // Highest priority
+			{ group: kindOfKnownCards, weight: 30 },  // Medium priority  
+			{ group: knownCards, weight: 20 }         // Lowest priority
+		];
+		
+		// Filter out empty groups
+		const availableGroups = groupWeights.filter(g => g.group.length > 0);
+		
+		// If no available groups (shouldn't happen), fallback
+		if (availableGroups.length === 0) {
+			let fallbackIndex;
+			do {
+				fallbackIndex = Math.floor(Math.random() * lessonContent.flashcards.length);
+			} while (fallbackIndex === previousCardIndex && lessonContent.flashcards.length > 1);
+			return fallbackIndex;
+		}
+		
+		// Create weighted array of groups
+		const groupSelection = [];
+		for (const groupData of availableGroups) {
+			for (let i = 0; i < groupData.weight; i++) {
+				groupSelection.push(groupData.group);
+			}
+		}
+		
+		// Select a random group based on weights
+		const selectedGroup = groupSelection[Math.floor(Math.random() * groupSelection.length)];
+		
+		// Select a random card from the chosen group
+		return selectedGroup[Math.floor(Math.random() * selectedGroup.length)];
+	}
+
+	$: {
+		initializeCardKnowledge();
+		// Initialize first card selection if it's the first time
+		if (currentCardIndex === 0 && Object.keys(cardKnowledge).length > 0) {
+			currentCardIndex = selectNextCard();
+		}
+	}
 	$: currentCard = lessonContent.flashcards[currentCardIndex];
-	$: progress = ((completedCards.size) / lessonContent.flashcards.length) * 100;
-	$: allCardsCompleted = completedCards.size === lessonContent.flashcards.length;
+	$: unknownCount = Object.values(cardKnowledge).filter(level => level === 0).length;
+	$: kindOfKnownCount = Object.values(cardKnowledge).filter(level => level === 1).length;
+	$: knownCount = Object.values(cardKnowledge).filter(level => level === 2).length;
+	$: progress = (knownCount / lessonContent.flashcards.length) * 100;
+	$: allCardsKnown = knownCount === lessonContent.flashcards.length;
 
 	function flipCard() {
 		isFlipped = !isFlipped;
 	}
 
-	function markAsKnown() {
-		completedCards.add(currentCardIndex);
-		completedCards = completedCards; // Trigger reactivity
+	function markAsCorrect() {
+		const currentKnowledge = cardKnowledge[currentCardIndex] || 0;
+		
+		// Progress: unknown (0) -> kind of known (1) -> known (2)
+		if (currentKnowledge < 2) {
+			cardKnowledge[currentCardIndex] = currentKnowledge + 1;
+		}
+		
+		// Trigger reactivity
+		cardKnowledge = cardKnowledge;
 		nextCard();
 	}
 
-	function markAsUnknown() {
+	function markAsIncorrect() {
+		const currentKnowledge = cardKnowledge[currentCardIndex] || 0;
+		
+		// Regress: known (2) -> kind of known (1) -> unknown (0)
+		if (currentKnowledge > 0) {
+			cardKnowledge[currentCardIndex] = currentKnowledge - 1;
+		}
+		
+		// Trigger reactivity  
+		cardKnowledge = cardKnowledge;
 		nextCard();
 	}
 
 	function nextCard() {
-		if (currentCardIndex < lessonContent.flashcards.length - 1) {
-			currentCardIndex++;
-		} else {
-			// Cycle back to first card
-			currentCardIndex = 0;
-		}
+		previousCardIndex = currentCardIndex; // Store current as previous
+		currentCardIndex = selectNextCard();
 		isFlipped = false;
 	}
 
-	function previousCard() {
-		if (currentCardIndex > 0) {
-			currentCardIndex--;
-		} else {
-			currentCardIndex = lessonContent.flashcards.length - 1;
-		}
-		isFlipped = false;
-	}
-
-	function goToCard(index: number) {
-		currentCardIndex = index;
-		isFlipped = false;
-	}
 
 	function resetProgress() {
-		completedCards.clear();
-		completedCards = completedCards; // Trigger reactivity
-		currentCardIndex = 0;
+		// Reset all cards to unknown
+		cardKnowledge = {};
+		initializeCardKnowledge();
+		previousCardIndex = -1; // Reset previous card tracking
+		currentCardIndex = selectNextCard();
 		isFlipped = false;
 	}
 
 	function completeLesson() {
 		// Save lesson completion to localStorage
 		const lessonScores = JSON.parse(localStorage.getItem('lessonScores') || '{}');
-		const percentage = Math.round((completedCards.size / lessonContent.flashcards.length) * 100);
+		const percentage = Math.round(progress);
 		lessonScores['spanish-phase1-essentials'] = { 
-			score: `${completedCards.size}/${lessonContent.flashcards.length}`, 
+			score: `${knownCount}/${lessonContent.flashcards.length}`, 
 			percentage,
-			type: 'flashcards'
+			type: 'flashcards',
+			knowledge: cardKnowledge
 		};
 		localStorage.setItem('lessonScores', JSON.stringify(lessonScores));
 		
@@ -109,25 +185,41 @@
 				<div class="max-w-md mx-auto mb-6">
 					<div class="flex justify-between text-sm text-gray-600 mb-2">
 						<span>Progress</span>
-						<span>{completedCards.size} of {lessonContent.flashcards.length} cards learned</span>
+						<span>{knownCount} of {lessonContent.flashcards.length} cards mastered</span>
 					</div>
-					<div class="bg-gray-200 rounded-full h-3">
-						<div class="bg-green-600 h-3 rounded-full transition-all duration-300" style="width: {progress}%"></div>
+					<div class="bg-gray-200 rounded-full h-3 relative">
+						<!-- Yellow bar (kind of known + known) -->
+						<div 
+							class="bg-yellow-400 h-3 rounded-full transition-all duration-300 absolute top-0 left-0" 
+							style="width: {((kindOfKnownCount + knownCount) / lessonContent.flashcards.length) * 100}%"
+						></div>
+						<!-- Green bar (known only) on top -->
+						<div 
+							class="bg-green-600 h-3 rounded-full transition-all duration-300 absolute top-0 left-0" 
+							style="width: {progress}%"
+						></div>
+					</div>
+					
+					<!-- Knowledge Level Breakdown -->
+					<div class="flex justify-between text-xs text-gray-500 mt-2">
+						<span class="text-red-600">Unknown: {unknownCount}</span>
+						<span class="text-yellow-600">Kind of Known: {kindOfKnownCount}</span>
+						<span class="text-green-600">Known: {knownCount}</span>
 					</div>
 				</div>
 			</div>
 
-			{#if allCardsCompleted}
+			{#if allCardsKnown}
 				<!-- Completion Screen -->
 				<div class="bg-white p-8 rounded-lg shadow-lg text-center">
 					<div class="text-6xl mb-4">🎉</div>
 					<h2 class="text-3xl font-bold text-gray-900 mb-4">Congratulations!</h2>
-					<p class="text-lg text-gray-700 mb-6">You've learned all the essential Spanish phrases!</p>
+					<p class="text-lg text-gray-700 mb-6">You've mastered all the essential Spanish phrases!</p>
 					
 					<div class="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-6">
 						<h3 class="text-xl font-semibold text-green-900 mb-2">Your Progress</h3>
-						<div class="text-3xl font-bold text-green-600 mb-2">{completedCards.size}/{lessonContent.flashcards.length}</div>
-						<div class="text-lg text-green-700">100% Complete</div>
+						<div class="text-3xl font-bold text-green-600 mb-2">{knownCount}/{lessonContent.flashcards.length}</div>
+						<div class="text-lg text-green-700">100% Mastered</div>
 					</div>
 
 					<div class="flex justify-center gap-4">
@@ -150,14 +242,17 @@
 				<div class="max-w-2xl mx-auto">
 					<div class="relative">
 						<div class="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-gray-200 transition-all duration-300 hover:border-green-300">
-							<!-- Card Counter -->
+							<!-- Card Status -->
 							<div class="bg-gray-100 px-6 py-3 border-b border-gray-200">
-								<div class="flex justify-between items-center">
-									<span class="text-sm font-medium text-gray-600">
-										Card {currentCardIndex + 1} of {lessonContent.flashcards.length}
-									</span>
-									<span class="text-sm font-medium {completedCards.has(currentCardIndex) ? 'text-green-600' : 'text-gray-600'}">
-										{completedCards.has(currentCardIndex) ? '✓ Known' : 'Learning'}
+								<div class="flex justify-center items-center">
+									<span class="text-sm font-medium {
+										(cardKnowledge[currentCardIndex] || 0) === 0 ? 'text-red-600' : 
+										(cardKnowledge[currentCardIndex] || 0) === 1 ? 'text-yellow-600' : 
+										'text-green-600'
+									}">
+										{(cardKnowledge[currentCardIndex] || 0) === 0 ? '❓ Unknown' : 
+										 (cardKnowledge[currentCardIndex] || 0) === 1 ? '🤔 Kind of Known' : 
+										 '✅ Known'}
 									</span>
 								</div>
 							</div>
@@ -194,72 +289,33 @@
 								<div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
 									<div class="flex justify-center gap-4">
 										<button 
-											on:click|stopPropagation={markAsUnknown}
+											on:click|stopPropagation={markAsIncorrect}
 											class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg font-medium transition-colors border border-red-300"
 										>
-											😕 Still Learning
+											❌ Got it Wrong
 										</button>
 										<button 
-											on:click|stopPropagation={markAsKnown}
+											on:click|stopPropagation={markAsCorrect}
 											class="bg-green-100 hover:bg-green-200 text-green-700 px-4 py-2 rounded-lg font-medium transition-colors border border-green-300"
 										>
-											😊 I Know This
+											✅ Got it Right
 										</button>
 									</div>
 								</div>
 							{/if}
 						</div>
 
-						<!-- Navigation Buttons -->
-						<div class="flex justify-between items-center mt-6">
-							<button 
-								on:click={previousCard}
-								class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+						<!-- Back to Dashboard -->
+						<div class="flex justify-center items-center mt-6">
+							<a 
+								href="/dashboard"
+								class="text-gray-600 hover:text-gray-700 transition-colors"
 							>
-								← Previous
-							</button>
-
-							<div class="flex items-center gap-2">
-								<a 
-									href="/dashboard"
-									class="text-gray-600 hover:text-gray-700 transition-colors"
-								>
-									← Back to Dashboard
-								</a>
-							</div>
-
-							<button 
-								on:click={nextCard}
-								class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-							>
-								Next →
-							</button>
+								← Back to Dashboard
+							</a>
 						</div>
 					</div>
 
-					<!-- Card Grid -->
-					<div class="mt-8">
-						<h3 class="text-lg font-semibold text-gray-900 mb-4">All Cards</h3>
-						<div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
-							{#each lessonContent.flashcards as card, index}
-								<button
-									on:click={() => goToCard(index)}
-									class="aspect-square rounded-lg border-2 text-sm font-medium transition-all {
-										index === currentCardIndex 
-											? 'border-green-500 bg-green-100 text-green-700' 
-											: completedCards.has(index)
-											? 'border-green-300 bg-green-50 text-green-600'
-											: 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300'
-									}"
-								>
-									{index + 1}
-									{#if completedCards.has(index)}
-										<div class="text-xs">✓</div>
-									{/if}
-								</button>
-							{/each}
-						</div>
-					</div>
 				</div>
 			{/if}
 		</div>
