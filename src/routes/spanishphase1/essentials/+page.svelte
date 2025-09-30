@@ -1,5 +1,11 @@
+<script lang="ts" context="module">
+	// Declare gtag function for TypeScript
+	declare function gtag(command: string, targetId: string | Date, config?: Record<string, any>): void;
+</script>
+
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let currentCardIndex = 0;
 	let previousCardIndex = -1; // Track previous card to avoid repeats
@@ -91,6 +97,15 @@
 		return selectedGroup[Math.floor(Math.random() * selectedGroup.length)];
 	}
 
+	// Track lesson start
+	onMount(() => {
+		gtag('event', 'lesson_started', {
+			'lesson_type': 'spanish_essentials',
+			'lesson_category': 'flashcards',
+			'total_cards': lessonContent.flashcards.length
+		});
+	});
+
 	$: {
 		initializeCardKnowledge();
 		// Initialize first card selection if it's the first time
@@ -107,6 +122,15 @@
 
 	function flipCard() {
 		isFlipped = !isFlipped;
+		
+		// Analytics: Track card flips
+		gtag('event', 'flashcard_flip', {
+			'lesson_type': 'spanish_essentials',
+			'card_index': currentCardIndex,
+			'card_english': currentCard.english,
+			'card_spanish': currentCard.spanish,
+			'flip_to': isFlipped ? 'spanish' : 'english'
+		});
 	}
 
 	function markAsCorrect() {
@@ -116,6 +140,17 @@
 		if (currentKnowledge < 2) {
 			cardKnowledge[currentCardIndex] = currentKnowledge + 1;
 		}
+		
+		// Analytics: Track correct answers
+		gtag('event', 'flashcard_correct', {
+			'lesson_type': 'spanish_essentials',
+			'card_index': currentCardIndex,
+			'card_english': currentCard.english,
+			'card_spanish': currentCard.spanish,
+			'previous_knowledge': currentKnowledge,
+			'new_knowledge': cardKnowledge[currentCardIndex],
+			'progress_percentage': Math.round(((knownCount + 1) / lessonContent.flashcards.length) * 100)
+		});
 		
 		// Trigger reactivity
 		cardKnowledge = cardKnowledge;
@@ -130,6 +165,17 @@
 			cardKnowledge[currentCardIndex] = currentKnowledge - 1;
 		}
 		
+		// Analytics: Track incorrect answers
+		gtag('event', 'flashcard_incorrect', {
+			'lesson_type': 'spanish_essentials',
+			'card_index': currentCardIndex,
+			'card_english': currentCard.english,
+			'card_spanish': currentCard.spanish,
+			'previous_knowledge': currentKnowledge,
+			'new_knowledge': cardKnowledge[currentCardIndex],
+			'progress_percentage': Math.round((knownCount / lessonContent.flashcards.length) * 100)
+		});
+		
 		// Trigger reactivity  
 		cardKnowledge = cardKnowledge;
 		nextCard();
@@ -143,6 +189,14 @@
 
 
 	function resetProgress() {
+		// Analytics: Track lesson reset
+		gtag('event', 'lesson_reset', {
+			'lesson_type': 'spanish_essentials',
+			'cards_known_before_reset': knownCount,
+			'cards_kind_of_known_before_reset': kindOfKnownCount,
+			'progress_before_reset': Math.round(progress)
+		});
+		
 		// Reset all cards to unknown
 		cardKnowledge = {};
 		initializeCardKnowledge();
@@ -152,9 +206,22 @@
 	}
 
 	function completeLesson() {
+		const percentage = Math.round(progress);
+		
+		// Analytics: Track lesson completion
+		gtag('event', 'lesson_completed', {
+			'lesson_type': 'spanish_essentials',
+			'lesson_category': 'flashcards',
+			'final_score': `${knownCount}/${lessonContent.flashcards.length}`,
+			'final_percentage': percentage,
+			'cards_mastered': knownCount,
+			'cards_kind_of_known': kindOfKnownCount,
+			'cards_unknown': unknownCount,
+			'completion_status': 'full_mastery'
+		});
+		
 		// Save lesson completion to localStorage
 		const lessonScores = JSON.parse(localStorage.getItem('lessonScores') || '{}');
-		const percentage = Math.round(progress);
 		lessonScores['spanish-phase1-essentials'] = { 
 			score: `${knownCount}/${lessonContent.flashcards.length}`, 
 			percentage,

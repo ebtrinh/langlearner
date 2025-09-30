@@ -1,3 +1,8 @@
+<script lang="ts" context="module">
+	// Declare gtag function for TypeScript
+	declare function gtag(command: string, targetId: string | Date, config?: Record<string, any>): void;
+</script>
+
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -12,38 +17,45 @@
 	let celebrationMessage = '';
 	let showCelebration = false;
 	
-	// Lesson 3: Specific Subjects
-	const lesson3Content = {
-		title: 'Specific Subjects & Names',
+	// Lesson 4: Ser vs Estar (Es vs Está)
+	const lesson4Content = {
+		title: 'Es vs Está: The Two Ways to Say "Is"',
 		steps: [
 			{
 				type: 'teaching',
-				title: 'Real People and Groups',
-				content: 'Now we\'ll practice with real names and specific groups like "my family" or "my brothers". These work just like él/ella (for names) and ellos/ellas (for groups).',
+				title: 'Understanding "Es" vs "Está"',
+				content: 'Spanish has two ways to say "is" - ES and ESTÁ. This might seem confusing, but there\'s a simple pattern: ES is for permanent things (identity, characteristics), ESTÁ is for temporary things (location, feelings, states).',
 				examples: [
 					{ 
-						subject: 'Pablo', 
-						verb: 'hablar',
-						form: 'Pablo habla', 
-						translation: 'Pablo speaks',
-						note: 'Names work like él/ella - use the él/ella form'
+						type: 'es',
+						spanish: 'Pablo es alto',
+						english: 'Pablo is tall',
+						pronunciation: 'PAH-bloh ehs AHL-toh',
+						explanation: 'Height is permanent - use ES'
 					},
 					{ 
-						subject: 'Mi familia', 
-						verb: 'comer',
-						form: 'Mi familia come', 
-						translation: 'My family eats',
-						note: 'Family = group, so use él/ella form (singular)'
+						type: 'esta',
+						spanish: 'Pablo está aquí',
+						english: 'Pablo is here',
+						pronunciation: 'PAH-bloh es-TAH ah-KEE',
+						explanation: 'Location can change - use ESTÁ'
 					},
 					{ 
-						subject: 'Mis hermanos', 
-						verb: 'vivir',
-						form: 'Mis hermanos viven', 
-						translation: 'My brothers live',
-						note: 'Brothers = multiple people, so use ellos/ellas form'
+						type: 'es',
+						spanish: 'Ella es doctora',
+						english: 'She is a doctor',
+						pronunciation: 'EH-yah ehs dok-TOH-rah',
+						explanation: 'Job/profession - use ES'
+					},
+					{ 
+						type: 'esta',
+						spanish: 'Ella está feliz',
+						english: 'She is happy',
+						pronunciation: 'EH-yah es-TAH feh-LEES',
+						explanation: 'Emotions/feelings change - use ESTÁ'
 					}
 				],
-				rule: 'Names and singular groups = él/ella form. Plural groups = ellos/ellas form!'
+				rule: 'ES = permanent (who you are, what you\'re like). ESTÁ = temporary (where you are, how you feel).'
 			},
 			// Multiple Choice Questions (1-4)
 			{
@@ -51,13 +63,13 @@
 				questionNumber: 1,
 				inputType: 'multiple',
 				title: 'Multiple Choice Practice',
-				question: 'What form does "Pablo habla" use?',
-				options: ['yo form', 'tú form', 'él/ella form'],
-				correct: 2,
-				correctExplanation: 'Correct! Pablo is a name, so we use the él/ella form.',
-				wrongExplanation: 'Names like Pablo work like él/ella - use the él/ella form.',
-				alternativeQuestion: 'What form does "María come" use?',
-				alternativeOptions: ['yo form', 'él/ella form', 'ellos/ellas form'],
+				question: 'How do you say "She is a teacher"? (ella + ser + maestra)',
+				options: ['Ella está maestra', 'Ella es maestra', 'Ella son maestra'],
+				correct: 1,
+				correctExplanation: 'Correct! "Ella es maestra" (EH-yah ehs mah-EHS-trah) - profession is permanent, use ES.',
+				wrongExplanation: 'Profession is permanent - use ES (ella es maestra).',
+				alternativeQuestion: 'How do you say "He is a student"? (él + ser + estudiante)',
+				alternativeOptions: ['Él está estudiante', 'Él es estudiante', 'Él son estudiante'],
 				alternativeCorrect: 1
 			},
 			{
@@ -65,13 +77,13 @@
 				questionNumber: 2,
 				inputType: 'multiple',
 				title: 'Multiple Choice Practice',
-				question: 'How do you say "My family speaks"? (mi familia + hablar)',
-				options: ['Mi familia hablan', 'Mi familia habla', 'Mi familia hablo'],
+				question: 'How do you say "The food is here"? (la comida + estar + aquí)',
+				options: ['La comida es aquí', 'La comida está aquí', 'La comida son aquí'],
 				correct: 1,
-				correctExplanation: 'Perfect! "Mi familia habla" (mee fah-MEE-lee-ah AH-blah) - family is singular, so use él/ella form.',
-				wrongExplanation: 'Family is one group (singular), so use the él/ella form.',
-				alternativeQuestion: 'How do you say "My mom eats"? (mi mamá + comer)',
-				alternativeOptions: ['Mi mamá como', 'Mi mamá come', 'Mi mamá comes'],
+				correctExplanation: 'Perfect! "La comida está aquí" (lah koh-MEE-dah es-TAH ah-KEE) - location uses ESTÁ.',
+				wrongExplanation: 'Location (where something is) uses ESTÁ.',
+				alternativeQuestion: 'How do you say "My mom is in Mexico"? (mi mamá + estar + en México)',
+				alternativeOptions: ['Mi mamá es en México', 'Mi mamá está en México', 'Mi mamá son en México'],
 				alternativeCorrect: 1
 			},
 			{
@@ -79,28 +91,28 @@
 				questionNumber: 3,
 				inputType: 'multiple',
 				title: 'Multiple Choice Practice',
-				question: 'How do you say "My brothers live"? (mis hermanos + vivir)',
-				options: ['Mis hermanos vive', 'Mis hermanos viven', 'Mis hermanos vivo'],
+				question: 'How do you say "I am tired"? (yo + estar + cansado)',
+				options: ['Yo soy cansado', 'Yo estoy cansado', 'Yo es cansado'],
 				correct: 1,
-				correctExplanation: 'Excellent! "Mis hermanos viven" (mees er-MAH-nohs VEE-vehn) - brothers is plural, so use ellos/ellas form.',
-				wrongExplanation: 'Brothers is plural (multiple people), so use the ellos/ellas form.',
-				alternativeQuestion: 'How do you say "My friends eat"? (mis amigos + comer)',
-				alternativeOptions: ['Mis amigos comen', 'Mis amigos come', 'Mis amigos como'],
-				alternativeCorrect: 0
+				correctExplanation: 'Excellent! "Yo estoy cansado" (yoh es-TOY kahn-SAH-doh) - feelings are temporary, use ESTOY.',
+				wrongExplanation: 'Feelings and emotions are temporary - use ESTOY (yo estoy cansado).',
+				alternativeQuestion: 'How do you say "We are happy"? (nosotros + estar + felices)',
+				alternativeOptions: ['Nosotros somos felices', 'Nosotros estamos felices', 'Nosotros es felices'],
+				alternativeCorrect: 1
 			},
 			{
 				type: 'practice',
 				questionNumber: 4,
 				inputType: 'multiple',
 				title: 'Multiple Choice Practice',
-				question: 'How do you say "Pepe and I walk"? (Pepe y yo + caminar)',
-				options: ['Pepe y yo camino', 'Pepe y yo caminamos', 'Pepe y yo camina'],
+				question: 'How do you say "The car is blue"? (el carro + ser + azul)',
+				options: ['El carro está azul', 'El carro es azul', 'El carro estoy azul'],
 				correct: 1,
-				correctExplanation: 'Great! "Pepe y yo caminamos" (PEH-peh ee yoh kah-mee-NAH-mohs) - Pepe and I = we, so use nosotros form.',
-				wrongExplanation: 'Pepe and I = we (nosotros), so use the nosotros form.',
-				alternativeQuestion: 'How do you say "Ana and I eat"? (Ana y yo + comer)',
-				alternativeOptions: ['Ana y yo comemos', 'Ana y yo come', 'Ana y yo como'],
-				alternativeCorrect: 0
+				correctExplanation: 'Great! "El carro es azul" (ehl KAH-rroh ehs ah-SOOL) - color is permanent, use ES.',
+				wrongExplanation: 'Colors and permanent characteristics use ES.',
+				alternativeQuestion: 'How do you say "The house is big"? (la casa + ser + grande)',
+				alternativeOptions: ['La casa está grande', 'La casa es grande', 'La casa estoy grande'],
+				alternativeCorrect: 1
 			},
 			// Typed Questions (5-8)
 			{
@@ -108,48 +120,48 @@
 				questionNumber: 5,
 				inputType: 'typed',
 				title: 'Type the Answer',
-				question: 'How do you say "Carlos speaks"? (Carlos + hablar)',
-				correctAnswer: 'carlos habla',
-				correctExplanation: 'Perfect! "Carlos habla" (KAHR-lohs AH-blah) - names use the él/ella form.',
-				wrongExplanation: 'Remember: names like Carlos use the él/ella form (habla).',
-				alternativeQuestion: 'How do you say "Sofia runs"? (Sofia + correr)',
-				alternativeAnswer: 'sofia corre'
+				question: 'How do you say "I am in the hospital"? (yo + estar + en el hospital)',
+				correctAnswer: 'yo estoy en el hospital',
+				correctExplanation: 'Perfect! "Yo estoy en el hospital" (yoh es-TOY ehn ehl ohs-pee-TAHL) - location uses ESTOY.',
+				wrongExplanation: 'Remember: location uses ESTAR - yo estoy en el hospital.',
+				alternativeQuestion: 'How do you say "You are at home"? (tú + estar + en casa)',
+				alternativeAnswer: 'tu estas en casa'
 			},
 			{
 				type: 'practice',
 				questionNumber: 6,
 				inputType: 'typed',
 				title: 'Type the Answer',
-				question: 'How do you say "My family eats"? (mi familia + comer)',
-				correctAnswer: 'mi familia come',
-				correctExplanation: 'Excellent! "Mi familia come" (mee fah-MEE-lee-ah KOH-meh) - family is one group (singular).',
-				wrongExplanation: 'Remember: mi familia is singular, so use the él/ella form (come).',
-				alternativeQuestion: 'How do you say "My team plays"? (mi equipo + jugar)',
-				alternativeAnswer: 'mi equipo juega'
+				question: 'How do you say "My sister is intelligent"? (mi hermana + ser + inteligente)',
+				correctAnswer: 'mi hermana es inteligente',
+				correctExplanation: 'Excellent! "Mi hermana es inteligente" (mee er-MAH-nah ehs een-teh-lee-HEN-teh) - personality traits use ES.',
+				wrongExplanation: 'Remember: permanent characteristics use SER - mi hermana es inteligente.',
+				alternativeQuestion: 'How do you say "My dad is tall"? (mi papá + ser + alto)',
+				alternativeAnswer: 'mi papa es alto'
 			},
 			{
 				type: 'practice',
 				questionNumber: 7,
 				inputType: 'typed',
 				title: 'Type the Answer',
-				question: 'How do you say "My sisters dance"? (mis hermanas + bailar)',
-				correctAnswer: 'mis hermanas bailan',
-				correctExplanation: 'Great job! "Mis hermanas bailan" (mees er-MAH-nahs BYE-lahn) - sisters is plural.',
-				wrongExplanation: 'Remember: mis hermanas is plural, so use the ellos/ellas form (bailan).',
-				alternativeQuestion: 'How do you say "My parents work"? (mis padres + trabajar)',
-				alternativeAnswer: 'mis padres trabajan'
+				question: 'How do you say "We are nervous"? (nosotros + estar + nerviosos)',
+				correctAnswer: 'nosotros estamos nerviosos',
+				correctExplanation: 'Great job! "Nosotros estamos nerviosos" (noh-SOH-trohs es-TAH-mohs ner-vee-OH-sohs) - emotions use ESTAR.',
+				wrongExplanation: 'Remember: emotions and feelings use ESTAR - nosotros estamos nerviosos.',
+				alternativeQuestion: 'How do you say "They are angry"? (ellos + estar + enojados)',
+				alternativeAnswer: 'ellos estan enojados'
 			},
 			{
 				type: 'practice',
 				questionNumber: 8,
 				inputType: 'typed',
 				title: 'Type the Answer',
-				question: 'How do you say "Luis and I study"? (Luis y yo + estudiar)',
-				correctAnswer: 'luis y yo estudiamos',
-				correctExplanation: 'Perfect! "Luis y yo estudiamos" (loo-EES ee yoh es-too-dee-AH-mohs) - Luis and I = we (nosotros).',
-				wrongExplanation: 'Remember: Luis y yo = nosotros, so use the nosotros form (estudiamos).',
-				alternativeQuestion: 'How do you say "Rosa and I live"? (Rosa y yo + vivir)',
-				alternativeAnswer: 'rosa y yo vivimos'
+				question: 'How do you say "The book is interesting"? (el libro + ser + interesante)',
+				correctAnswer: 'el libro es interesante',
+				correctExplanation: 'Perfect! "El libro es interesante" (ehl LEE-broh ehs een-teh-reh-SAHN-teh) - characteristics use ES.',
+				wrongExplanation: 'Remember: permanent qualities use SER - el libro es interesante.',
+				alternativeQuestion: 'How do you say "The movie is boring"? (la película + ser + aburrida)',
+				alternativeAnswer: 'la pelicula es aburrida'
 			},
 			// Application Questions (9-10)
 			{
@@ -157,41 +169,48 @@
 				questionNumber: 9,
 				inputType: 'application',
 				title: 'Real World Application',
-				question: 'How do you say "My mom speaks Spanish and works here"? (mi mamá + hablar + español, trabajar + aquí)',
-				correctAnswer: 'mi mama habla español y trabaja aqui',
-				correctExplanation: 'Excellent! "Mi mamá habla español y trabaja aquí" (mee mah-MAH AH-blah es-pahn-YOHL ee trah-BAH-hah ah-KEE) - perfect for talking about family!',
-				wrongExplanation: 'Remember: mi mamá uses the él/ella form (habla y trabaja).',
-				alternativeQuestion: 'How do you say "My dad works here or there"? (mi papá + trabajar + aquí o allí)',
-				alternativeAnswer: 'mi papa trabaja aqui o alli'
+				question: 'How do you say "I am a student and I am in class or the library"? (yo + ser + estudiante + y + yo + estar + en clase o en la biblioteca)',
+				correctAnswer: 'yo soy estudiante y estoy en clase o en la biblioteca',
+				correctExplanation: 'Excellent! "Yo soy estudiante y estoy en clase o en la biblioteca" (yoh soy es-too-dee-AHN-teh ee es-TOY ehn KLAH-seh oh ehn lah bee-blee-oh-TEH-kah) - perfect use of both with Y and O!',
+				wrongExplanation: 'Remember: profession uses SOY, location uses ESTOY, connect with Y and O.',
+				alternativeQuestion: 'How do you say "She is Mexican and she is in Spain or France"? (ella + ser + mexicana + y + estar + en España o Francia)',
+				alternativeAnswer: 'ella es mexicana y esta en españa o francia'
 			},
 			{
 				type: 'practice',
 				questionNumber: 10,
 				inputType: 'application',
 				title: 'Real World Application',
-				question: 'How do you say "My friends and I eat tacos and drink water"? (mis amigos y yo + comer tacos, beber agua)',
-				correctAnswer: 'mis amigos y yo comemos tacos y bebemos agua',
-				correctExplanation: 'Perfect! "Mis amigos y yo comemos tacos y bebemos agua" (mees ah-MEE-gohs ee yoh koh-MEH-mohs TAH-kohs ee beh-BEH-mohs AH-gwah) - great for talking about activities!',
-				wrongExplanation: 'Remember: mis amigos y yo = nosotros, so use comemos y bebemos.',
-				alternativeQuestion: 'How do you say "My sister and I study Spanish or English"? (mi hermana y yo + estudiar español o inglés)',
-				alternativeAnswer: 'mi hermana y yo estudiamos español o ingles'
+				question: 'How do you say "My friends are funny but they are sad or tired today"? (mis amigos + ser + divertidos + PERO (but) + estar + tristes o cansados hoy)',
+				correctAnswer: 'mis amigos son divertidos pero estan tristes o cansados hoy',
+				correctExplanation: 'Perfect! "Mis amigos son divertidos pero están tristes o cansados hoy" (mees ah-MEE-gohs sohn dee-ver-TEE-dohs PEH-roh es-TAHN TREES-tehs oh kahn-SAH-dohs oy) - excellent use of SER/ESTAR with PERO (but) and O!',
+				wrongExplanation: 'Remember: personality uses SON, current emotions use ESTÁN, connect with PERO and O.',
+				alternativeQuestion: 'How do you say "The food is delicious and it is hot or cold"? (la comida + ser + deliciosa + y + estar + caliente o fría)',
+				alternativeAnswer: 'la comida es deliciosa y esta caliente o fria'
 			},
 			{
 				type: 'completion',
 				title: 'Lesson Complete! 🎉',
-				content: 'You\'ve mastered talking about specific people and groups! Now you can describe what your family, friends, and others do.',
+				content: 'You\'ve mastered one of the most important concepts in Spanish! Now you know when to use ES vs ESTÁ.',
 				mastered: [
-					'Names and specific people (Pablo habla)',
-					'Singular groups (mi familia come)',
-					'Plural groups (mis hermanos viven)', 
-					'You + others (Pepe y yo caminamos)'
+					'SER (es, soy, son) for permanent things: identity, profession, characteristics',
+					'ESTAR (está, estoy, están) for temporary things: location, emotions, states',
+					'Real-world applications combining both verbs',
+					'Key vocabulary for descriptions and feelings'
 				],
-				nextLesson: 'Next: Learn essential travel verbs and common travel situations'
+				nextLesson: 'Next: Learn essential travel vocabulary and practical phrases for your trip'
 			}
 		]
 	};
 	
 	onMount(() => {
+		// Analytics: Track lesson start
+		gtag('event', 'lesson_started', {
+			'lesson_type': 'spanish_lesson_4',
+			'lesson_title': 'Es vs Está',
+			'lesson_category': 'grammar'
+		});
+
 		const handleKeydown = (e: KeyboardEvent) => {
 			if (e.key === 'Enter') {
 				const isCorrect = (currentStepData.inputType === 'multiple' && selectedAnswer === currentStepData.correct?.toString()) || (currentStepData.inputType !== 'multiple' && checkTypedAnswer());
@@ -210,7 +229,7 @@
 	});
 
 	function nextStep() {
-		if (currentStep < lesson3Content.steps.length - 1) {
+		if (currentStep < lesson4Content.steps.length - 1) {
 			currentStep++;
 			selectedAnswer = '';
 			typedAnswer = '';
@@ -296,16 +315,32 @@
 	}
 	
 	function completeLesson() {
-		// Mark lesson as complete and return to dashboard
+		// Analytics: Track lesson completion
+		gtag('event', 'lesson_completed', {
+			'lesson_type': 'spanish_lesson_4',
+			'lesson_title': 'Es vs Está',
+			'lesson_category': 'grammar'
+		});
+
+		// Save lesson completion to localStorage
+		const lessonScores = JSON.parse(localStorage.getItem('lessonScores') || '{}');
+		lessonScores['spanish-4'] = { 
+			score: '10/10', 
+			percentage: 100,
+			type: 'grammar',
+			title: 'Es vs Está'
+		};
+		localStorage.setItem('lessonScores', JSON.stringify(lessonScores));
+
 		goto('/dashboard');
 	}
 	
-	$: currentStepData = lesson3Content.steps[currentStep];
+	$: currentStepData = lesson4Content.steps[currentStep];
 </script>
 
 <svelte:head>
-	<title>Lesson 3: {lesson3Content.title} - LangLearner</title>
-	<meta name="description" content="Learn to talk about specific people and groups" />
+	<title>Lesson 4: {lesson4Content.title} - LangLearner</title>
+	<meta name="description" content="Learn the difference between es and está in Spanish" />
 </svelte:head>
 
 <div class="min-h-screen bg-gray-50">
@@ -314,15 +349,14 @@
 			<!-- Progress Bar -->
 			<div class="mb-8">
 				<div class="flex justify-between items-center mb-2">
-					<span class="text-sm text-gray-600">Lesson 3: {lesson3Content.title}</span>
-					<span class="text-sm text-gray-600">{currentStep + 1} of {lesson3Content.steps.length}</span>
+					<span class="text-sm text-gray-600">Lesson 4: {lesson4Content.title}</span>
+					<span class="text-sm text-gray-600">{currentStep + 1} of {lesson4Content.steps.length}</span>
 				</div>
 				<div class="bg-gray-200 rounded-full h-2">
-					<div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {((currentStep + 1) / lesson3Content.steps.length) * 100}%"></div>
+					<div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: {((currentStep + 1) / lesson4Content.steps.length) * 100}%"></div>
 				</div>
 			</div>
 			
-			<!-- Lesson Content -->
 			<!-- Celebration Pop-up -->
 			{#if showCelebration}
 				<div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-8 py-4 rounded-full shadow-lg animate-bounce">
@@ -330,6 +364,7 @@
 				</div>
 			{/if}
 
+			<!-- Lesson Content -->
 			<div class="bg-white p-8 rounded-lg shadow-lg relative overflow-hidden">
 				<!-- Progress celebration effects -->
 				{#if currentStep >= 3}
@@ -347,15 +382,14 @@
 						<h3 class="text-xl font-semibold text-blue-900 mb-4">Examples:</h3>
 						<div class="space-y-4">
 							{#each currentStepData.examples || [] as example}
-								<div class="bg-white p-4 rounded-lg">
+								<div class="bg-white p-4 rounded-lg border-l-4 {example.type === 'es' ? 'border-green-400' : 'border-purple-400'}">
 									<div class="flex items-center justify-between mb-2">
-										<span class="text-lg font-medium text-gray-900">{example.subject} + {example.verb}</span>
+										<span class="text-lg font-bold {example.type === 'es' ? 'text-green-600' : 'text-purple-600'}">{example.spanish}</span>
+										<span class="text-sm {example.type === 'es' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'} px-2 py-1 rounded">{example.type.toUpperCase()}</span>
 									</div>
-									<div class="flex items-center justify-between mb-2">
-										<span class="text-xl font-bold text-blue-600">{example.form}</span>
-										<span class="text-blue-800">{example.translation}</span>
-									</div>
-									<div class="text-sm text-gray-600">{example.note}</div>
+									<div class="text-blue-800 mb-1">{example.english}</div>
+									<div class="text-sm text-gray-600 mb-2">Pronunciation: {example.pronunciation}</div>
+									<div class="text-sm {example.type === 'es' ? 'text-green-700' : 'text-purple-700'} font-medium">{example.explanation}</div>
 								</div>
 							{/each}
 						</div>
@@ -381,31 +415,31 @@
 					<!-- Hint Panel -->
 					{#if showHint}
 						<div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-6">
-							<h3 class="font-semibold text-yellow-800 mb-3">💡 Subject Guide:</h3>
-							<div class="space-y-3 text-sm">
-								<div class="bg-white p-3 rounded">
-									<h4 class="font-semibold text-blue-700 mb-2">Names & Singular Groups</h4>
-									<p class="mb-2">Use <strong>él/ella form</strong>:</p>
-									<div class="text-xs space-y-1">
-										<div>• Pablo, María, Carlos → -a/-e ending</div>
-										<div>• mi familia, mi mamá, mi equipo → -a/-e ending</div>
+							<h3 class="font-semibold text-yellow-800 mb-3">💡 ES vs ESTÁ Quick Guide:</h3>
+							<div class="grid grid-cols-2 gap-4 text-sm">
+								<div class="bg-green-100 p-3 rounded">
+									<h4 class="font-semibold text-green-700 mb-2">Use ES (SER) for:</h4>
+									<div class="space-y-1 text-xs">
+										<div>• <strong>Identity:</strong> Soy Pablo</div>
+										<div>• <strong>Profession:</strong> Es doctora</div>
+										<div>• <strong>Characteristics:</strong> Es alto</div>
+										<div>• <strong>Nationality:</strong> Es mexicano</div>
+										<div>• <strong>Permanent traits:</strong> Es inteligente</div>
 									</div>
 								</div>
-								<div class="bg-white p-3 rounded">
-									<h4 class="font-semibold text-green-700 mb-2">Plural Groups</h4>
-									<p class="mb-2">Use <strong>ellos/ellas form</strong>:</p>
-									<div class="text-xs space-y-1">
-										<div>• mis hermanos, mis amigos → -an/-en ending</div>
-										<div>• mis padres, mis hermanas → -an/-en ending</div>
+								<div class="bg-purple-100 p-3 rounded">
+									<h4 class="font-semibold text-purple-700 mb-2">Use ESTÁ (ESTAR) for:</h4>
+									<div class="space-y-1 text-xs">
+										<div>• <strong>Location:</strong> Está aquí</div>
+										<div>• <strong>Emotions:</strong> Está feliz</div>
+										<div>• <strong>States:</strong> Está cansado</div>
+										<div>• <strong>Temporary conditions:</strong> Está enfermo</div>
+										<div>• <strong>Current situation:</strong> Está ocupado</div>
 									</div>
 								</div>
-								<div class="bg-white p-3 rounded">
-									<h4 class="font-semibold text-purple-700 mb-2">You + Others</h4>
-									<p class="mb-2">Use <strong>nosotros form</strong>:</p>
-									<div class="text-xs space-y-1">
-										<div>• Pablo y yo, María y yo → -amos/-emos/-imos</div>
-									</div>
-								</div>
+							</div>
+							<div class="mt-3 p-2 bg-blue-100 rounded text-xs">
+								<strong>Memory trick:</strong> If it can change easily (location, feelings), use ESTÁ. If it's who/what someone IS, use ES.
 							</div>
 						</div>
 					{/if}
@@ -515,7 +549,7 @@
 								class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
 								disabled={!canContinue}
 							>
-								{currentStep === lesson3Content.steps.length - 2 ? 'Complete Lesson' : 'Continue'}
+								{currentStep === lesson4Content.steps.length - 2 ? 'Complete Lesson' : 'Continue'}
 							</button>
 						{:else}
 							<button 

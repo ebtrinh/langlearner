@@ -1,3 +1,8 @@
+<script lang="ts" context="module">
+	// Declare gtag function for TypeScript
+	declare function gtag(command: string, targetId: string | Date, config?: Record<string, any>): void;
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	
@@ -31,7 +36,34 @@
 			phase2Lessons = spanishPhase2Lessons;
 			totalLessons = spanishPhase1Lessons.length + spanishPhase2Lessons.length;
 		}
+		
+		// Count completed lessons
+		lessonsCompleted = Object.keys(lessonScores).length;
+		
+		// Analytics: Track dashboard visit
+		gtag('event', 'page_view', {
+			'page_title': 'Dashboard',
+			'page_location': window.location.href,
+			'user_destination': userPreferences.destination || 'not_set',
+			'lessons_completed': lessonsCompleted,
+			'total_lessons': totalLessons,
+			'progress_percentage': Math.round((lessonsCompleted / totalLessons) * 100)
+		});
 	});
+	
+	// Function to track lesson clicks
+	function trackLessonClick(lesson: any, lessonType: string) {
+		gtag('event', 'lesson_click', {
+			'lesson_id': lesson.id,
+			'lesson_title': lesson.title,
+			'lesson_type': lessonType,
+			'lesson_language': lesson.language || 'spanish',
+			'lesson_phase': lesson.phase,
+			'lesson_available': lesson.available,
+			'lesson_completed': lesson.completed,
+			'user_destination': userPreferences.destination || 'not_set'
+		});
+	}
 	
 	// Spanish Phase 1 - Vocabulary Lessons
 	const spanishPhase1Lessons = [
@@ -119,6 +151,39 @@
 			language: 'spanish',
 			phase: 2,
 			icon: '📚'
+		},
+		{
+			id: 4,
+			title: 'Es vs Está: The Two Ways to Say "Is"',
+			description: 'Master the difference between permanent and temporary states',
+			completed: false,
+			available: true,
+			skills: ['es for permanent (ella es doctora)', 'está for temporary (está aquí)', 'emotions vs characteristics'],
+			language: 'spanish',
+			phase: 2,
+			icon: '🎯'
+		},
+		{
+			id: 5,
+			title: 'Questions: Where, Can, When',
+			description: 'Ask essential questions for travel and daily life',
+			completed: false,
+			available: true,
+			skills: ['¿Dónde está? (Where is?)', '¿Puede ayudar? (Can you help?)', '¿Cuándo? (When?)', 'combining with Y and O'],
+			language: 'spanish',
+			phase: 2,
+			icon: '❓'
+		},
+		{
+			id: 6,
+			title: 'Me Gusta vs Me Gustan',
+			description: 'Express what you like and don\'t like correctly',
+			completed: false,
+			available: true,
+			skills: ['me gusta (singular)', 'me gustan (plural)', 'no me gusta (dislikes)', 'te gusta / le gusta (others)'],
+			language: 'spanish',
+			phase: 2,
+			icon: '💝'
 		}
 	];
 	
@@ -281,6 +346,7 @@
 							{#if lesson.available && !lesson.completed}
 								<a 
 									href="/{lesson.language}phase1/{lesson.id}"
+									on:click={() => trackLessonClick(lesson, 'phase1_start')}
 									class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors inline-block text-center"
 								>
 									Start Learning
@@ -288,6 +354,7 @@
 							{:else if lesson.completed}
 								<a 
 									href="/{lesson.language}phase1/{lesson.id}"
+									on:click={() => trackLessonClick(lesson, 'phase1_review')}
 									class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors inline-block text-center"
 								>
 									Review Lesson
@@ -364,6 +431,7 @@
 							{#if lesson.available && !lesson.completed}
 								<a 
 									href="/{lesson.language === 'french' ? 'frenchlessons' : 'spanishlessons'}/{lesson.id}"
+									on:click={() => trackLessonClick(lesson, 'phase2_start')}
 									class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors inline-block text-center"
 								>
 									{lesson.id === 1 ? 'Start Learning' : 'Continue Lesson'}
@@ -371,6 +439,7 @@
 							{:else if lesson.completed}
 								<a 
 									href="/{lesson.language === 'french' ? 'frenchlessons' : 'spanishlessons'}/{lesson.id}"
+									on:click={() => trackLessonClick(lesson, 'phase2_review')}
 									class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-medium transition-colors inline-block text-center"
 								>
 									Review Lesson
