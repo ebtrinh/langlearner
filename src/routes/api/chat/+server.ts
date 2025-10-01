@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
+import { GEMINI_API_KEY } from '$env/static/private';
 import type { RequestHandler } from './$types';
 
-const GEMINI_API_KEY = 'AIzaSyC9gT87nmPXA1MXaReia8ZsU47yemltdf8';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent';
 
 // Simple rate limiting - track last request time
