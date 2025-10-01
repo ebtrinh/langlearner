@@ -456,6 +456,70 @@
 					{/each}
 				</div>
 			</div>
+
+			<!-- Phase 3: AI Conversation -->
+			<div class="mb-12">
+				<div class="flex items-center mb-6">
+					<div class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-sm font-medium mr-3">Phase 3</div>
+					<h2 class="text-2xl font-bold text-gray-900">Real Conversations</h2>
+				</div>
+				<p class="text-gray-600 mb-6">Ready to put it all together? Chat with María, your AI Spanish tutor, in realistic scenarios you'll encounter in Spain!</p>
+				
+				<!-- Phase 3 Card -->
+				<div class="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200 p-8 rounded-xl shadow-lg">
+					<div class="flex items-center justify-between mb-6">
+						<div class="flex items-center">
+							<div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center mr-4">
+								<span class="text-white text-2xl font-bold">M</span>
+							</div>
+							<div>
+								<h3 class="text-2xl font-bold text-gray-900 mb-2">Chat with María</h3>
+								<p class="text-gray-600">Your friendly AI conversation partner from Madrid</p>
+							</div>
+						</div>
+						<div class="text-4xl">🇪🇸</div>
+					</div>
+					
+					<div class="grid md:grid-cols-2 gap-6 mb-6">
+						<div class="bg-white p-4 rounded-lg">
+							<h4 class="font-semibold text-gray-900 mb-2">🎭 Endless Scenarios</h4>
+							<p class="text-sm text-gray-600">Practice ordering food, asking directions, shopping, and more real-life situations</p>
+						</div>
+						<div class="bg-white p-4 rounded-lg">
+							<h4 class="font-semibold text-gray-900 mb-2">🔧 Gentle Corrections</h4>
+							<p class="text-sm text-gray-600">María will help you improve naturally, just like a patient local friend</p>
+						</div>
+						<div class="bg-white p-4 rounded-lg">
+							<h4 class="font-semibold text-gray-900 mb-2">📚 Learn New Words</h4>
+							<p class="text-sm text-gray-600">Discover new vocabulary contextually as you chat about different topics</p>
+						</div>
+						<div class="bg-white p-4 rounded-lg">
+							<h4 class="font-semibold text-gray-900 mb-2">🚀 Build Confidence</h4>
+							<p class="text-sm text-gray-600">Practice until you feel ready to have real conversations in Spain!</p>
+						</div>
+					</div>
+
+					<!-- Phase 3 Unlock Logic -->
+					{#if spanishPhase2Lessons.every(lesson => lessonScores[`spanish-${lesson.id}`]?.percentage >= 80)}
+						<a 
+							href="/spanish-chat"
+							on:click={() => gtag('event', 'phase3_chat_started', { 'source': 'dashboard' })}
+							class="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white py-4 px-6 rounded-lg font-bold text-lg transition-all transform hover:scale-105 inline-block text-center shadow-lg"
+						>
+							🚀 Start Chatting with María
+						</a>
+					{:else}
+						<div class="text-center">
+							<div class="bg-gray-100 text-gray-500 py-4 px-6 rounded-lg font-medium mb-4">
+								🔒 Complete all Phase 2 lessons to unlock conversations with María
+							</div>
+							<div class="text-sm text-gray-600">
+								Progress: {spanishPhase2Lessons.filter(lesson => lessonScores[`spanish-${lesson.id}`]?.percentage >= 80).length} of {spanishPhase2Lessons.length} lessons completed
+							</div>
+						</div>
+					{/if}
+				</div>
+			</div>
 			
 			<!-- Quick Stats -->
 			<div class="grid md:grid-cols-3 gap-6 mt-8">

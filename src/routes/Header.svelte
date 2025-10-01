@@ -40,6 +40,13 @@
 				>
 					Dashboard
 				</a>
+				<a href="/spanish-chat" 
+					on:click={() => trackNavClick('chat')}
+					class="text-gray-700 hover:text-orange-600 font-medium transition-colors"
+					class:text-orange-600={page.url.pathname === '/spanish-chat'}
+				>
+					💬 Chat
+				</a>
 				<a href="/about" 
 					on:click={() => trackNavClick('about')}
 					class="text-gray-700 hover:text-blue-600 font-medium transition-colors"
